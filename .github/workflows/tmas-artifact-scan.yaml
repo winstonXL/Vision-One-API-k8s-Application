@@ -1,0 +1,56 @@
+name: TMAS Scan
+
+on:
+  push:
+    branches: [main]
+
+permissions:    # Could have same result if changing access token (blanket), more secure for specific action
+  contents: read
+  pull-requests: write
+  
+env:
+  IMAGE_TAG: k8sapp:scan # Used for building image in container scan
+    
+jobs:
+  vuln-secrets-scan-source-code:
+    name: TMAS Repo Scan - Phase 1 - find vulnerabilties / malware / secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download TMAS and Scan Repo for Open Source Vulnerabilities and Secrets
+        uses: trendmicro/tmas-scan-action@v3.1.3
+        with:
+          vulnerabilitiesScan: true
+          malwareScan: false # Malware scanning is only available for container images at this time
+          secretsScan: true
+          artifact: dir:.
+          additionalArgs: --region=us-east-1
+          tmasApiKey: ${{ secrets.TMAS_API_KEY }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  vulnerability-scan-container:
+    name: Vulnerability Scan — Container Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build container image
+        run: docker build -t ${{ env.IMAGE_TAG }} .
+
+      - name: "Scan: Find CVEs in container layers"
+        uses: trendmicro/tmas-scan-action@v3.1.3
+        with:
+          vulnerabilitiesScan: true
+          malwareScan: false
+          secretsScan: true
+          artifact: docker:${{ env.IMAGE_TAG }}
+          additionalArgs: --region=us-east-1 --override overrides/tmas_overrides.yml # --evaluatePolicy -> need to enable branch protection rules in Github to adhere to responses
+          tmasApiKey: ${{ secrets.TMAS_API_KEY }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+          

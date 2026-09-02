@@ -1,0 +1,119 @@
+# ────────────────────────────────────────────────────────────────────────────
+# deployment.yaml
+#
+# Deploys the Vision One Workbench app and exposes it as a ClusterIP service.
+#
+# Apply with:
+#   kubectl apply -f app-secrets.yaml
+#   kubectl apply -f deployment.yaml
+#
+# Replace <YOUR_IMAGE> with your image tag, e.g.:
+#   your-registry.io/v1-workbench:1.0.0
+# ────────────────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: v1-workbench
+  namespace: default
+  labels:
+    app: v1-workbench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: v1-workbench
+  template:
+    metadata:
+      labels:
+        app: v1-workbench
+    spec:
+      # Prevent pods from running as root
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+
+      containers:
+        - name: v1-workbench
+          image: apiapp:1.0
+          imagePullPolicy: Never # force k8s to pull image locally 
+          ports:
+            - containerPort: 8080
+
+          # All secrets injected as environment variables from app-secrets.yaml
+          env:
+            - name: TOKEN_ALERTS
+              valueFrom:
+                secretKeyRef:
+                  name: v1-workbench-secrets
+                  key: TOKEN_ALERTS
+
+            - name: TOKEN_MODELS
+              valueFrom:
+                secretKeyRef:
+                  name: v1-workbench-secrets
+                  key: TOKEN_MODELS
+
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: v1-workbench-secrets
+                  key: AWS_ACCESS_KEY_ID
+
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: v1-workbench-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+
+            - name: AWS_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: v1-workbench-secrets
+                  key: AWS_REGION
+
+          # Liveness: restart pod if the app stops responding
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+
+          # Readiness: only send traffic once the app is ready
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+
+      restartPolicy: Always
+
+---
+# ── Service ──────────────────────────────────────────────────────────────────
+# ClusterIP exposes the app inside the cluster.
+# Change type to LoadBalancer or add an Ingress to expose externally.
+apiVersion: v1
+kind: Service
+metadata:
+  name: v1-workbench-svc
+  namespace: default
+  labels:
+    app: v1-workbench
+spec:
+  selector:
+    app: v1-workbench
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 30100
+  type: NodePort

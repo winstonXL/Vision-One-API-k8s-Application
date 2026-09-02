@@ -1,0 +1,20 @@
+# Override rules for TMAS — suppress specific findings
+# This file demonstrates how to manage false positives and accepted risks.
+#
+# Use with: tmas scan --override overrides/tmas_overrides.yml
+# Docs: https://docs.trendmicro.com/en-us/documentation/article/trend-vision-one-artifactscannerclire
+
+vulnerabilities:
+  - rule:
+      vulnerability: CVE-2022-37434
+    reason: "Accepted risk — not exploitable in our context"
+
+secrets:
+  paths:
+    - patterns:
+        - /usr/local/lib/python3\.12/site-packages/botocore/data/.*
+      reason: "AWS botocore data files contain example/test credentials, not real secrets"
+#  rules:
+#    - patterns:
+#       - generic-api-key  # maybe too overpermissive
+#      reason: "Intentional demo credential"

@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vision One Workbench</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f4f2;
+      --surface: #ffffff;
+      --surface-alt: #f9f8f7;
+      --border: rgba(0,0,0,0.08);
+      --border-strong: rgba(0,0,0,0.14);
+      --text-primary: #1a1a18;
+      --text-secondary: #5a5a56;
+      --text-muted: #9a9a94;
+      --red-bg: #fcebeb;
+      --red-text: #a32d2d;
+      --red-border: #f09595;
+      --red-accent: #e24b4a;
+      --blue-bg: #e6f1fb;
+      --blue-text: #185fa5;
+      --amber-bg: #faeeda;
+      --amber-text: #854f0b;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a18;
+        --surface: #242420;
+        --surface-alt: #2c2c28;
+        --border: rgba(255,255,255,0.08);
+        --border-strong: rgba(255,255,255,0.14);
+        --text-primary: #f0efe8;
+        --text-secondary: #a8a89e;
+        --text-muted: #66665e;
+        --red-bg: #2e1a1a;
+        --red-text: #f09595;
+        --red-border: #a32d2d;
+        --blue-bg: #0c2035;
+        --blue-text: #85b7eb;
+        --amber-bg: #2a1e08;
+        --amber-text: #fac775;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .app-shell {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem 3rem;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0 0;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo-mark {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: #d85a30;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-mark i { color: #fff; font-size: 20px; }
+    .app-title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+    .app-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+    .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    .date-chip {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius);
+      border: 0.5px solid var(--border-strong);
+      background: var(--surface);
+      font-size: 12px; color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .date-chip i { font-size: 14px; }
+
+    .refresh-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      border-radius: var(--radius);
+      border: 0.5px solid var(--border-strong);
+      background: var(--surface);
+      font-size: 13px; color: var(--text-primary);
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .refresh-btn:hover { background: var(--surface-alt); }
+    .refresh-btn:active { transform: scale(0.98); }
+    .refresh-btn i { font-size: 15px; }
+    .refresh-btn.loading i { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      margin-top: 1.25rem;
+      border-bottom: 0.5px solid var(--border-strong);
+    }
+    .tab-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 8px 16px 10px;
+      font-size: 13px; font-weight: 500;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -0.5px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color 0.15s;
+      white-space: nowrap;
+    }
+    .tab-btn i { font-size: 15px; }
+    .tab-btn:hover { color: var(--text-secondary); }
+    .tab-btn.active {
+      color: var(--text-primary);
+      border-bottom-color: #d85a30;
+    }
+    .tab-pill {
+      font-size: 11px; font-weight: 600;
+      padding: 1px 7px; border-radius: 99px;
+      background: var(--red-bg); color: var(--red-text);
+    }
+    .tab-btn.active .tab-pill { background: var(--red-bg); color: var(--red-text); }
+
+    /* ── Tab panels ── */
+    .tab-panel { display: none; padding-top: 1.5rem; }
+    .tab-panel.active { display: block; }
+
+    /* ── Summary cards ── */
+    .summary-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 640px) {
+      .summary-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      box-shadow: var(--shadow);
+    }
+    .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+    .stat-value { font-size: 24px; font-weight: 600; color: var(--text-primary); line-height: 1.1; }
+    .stat-value.red { color: var(--red-text); }
+    .stat-value.amber { color: var(--amber-text); }
+    .stat-value.blue { color: var(--blue-text); font-size: 14px; padding-top: 5px; word-break: break-all; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 0.85rem;
+      gap: 0.75rem; flex-wrap: wrap;
+    }
+    .toolbar-left { display: flex; align-items: center; gap: 8px; }
+    .section-label { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .count-badge {
+      font-size: 11px; font-weight: 600;
+      background: var(--red-bg); color: var(--red-text);
+      border-radius: 99px; padding: 2px 9px;
+    }
+    .toolbar-right { display: flex; align-items: center; gap: 8px; }
+    .filter-select {
+      padding: 5px 10px;
+      border-radius: var(--radius);
+      border: 0.5px solid var(--border-strong);
+      background: var(--surface);
+      font-size: 12px; color: var(--text-secondary);
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    /* ── Alerts list ── */
+    .alerts-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .alert-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-left: 3px solid var(--red-accent);
+      border-radius: 0 12px 12px 0;
+      padding: 1rem 1.25rem;
+      display: flex; align-items: flex-start; gap: 14px;
+      box-shadow: var(--shadow);
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .alert-card:hover { border-color: var(--border-strong); background: var(--surface-alt); }
+
+    .sev-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: var(--red-bg);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .sev-icon i { color: var(--red-text); font-size: 18px; }
+
+    .alert-body { flex: 1; min-width: 0; }
+    .alert-top { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; flex-wrap: wrap; }
+    .alert-id { font-size: 11px; color: var(--text-muted); font-family: 'SFMono-Regular', Consolas, monospace; }
+
+    .badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+    .badge-high { background: var(--red-bg); color: var(--red-text); }
+    .badge-new  { background: var(--blue-bg); color: var(--blue-text); }
+    .badge-open { background: var(--amber-bg); color: var(--amber-text); }
+
+    .alert-model { font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 6px; }
+
+    .alert-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--text-secondary); }
+    .alert-meta span { display: flex; align-items: center; gap: 4px; }
+    .alert-meta i { font-size: 13px; flex-shrink: 0; }
+
+    .alert-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; min-width: 120px; }
+
+    .wb-link { font-size: 12px; color: var(--blue-text); display: flex; align-items: center; gap: 3px; text-decoration: none; }
+    .wb-link:hover { text-decoration: underline; }
+    .wb-link i { font-size: 12px; }
+    .incident-id { font-size: 11px; color: var(--text-muted); font-family: 'SFMono-Regular', Consolas, monospace; }
+
+    /* ── AI Summary ── */
+    .alert-card { flex-direction: column; }
+    .alert-card-main { display: flex; align-items: flex-start; gap: 14px; width: 100%; }
+
+    .summarize-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px;
+      border-radius: var(--radius);
+      border: 0.5px solid var(--border-strong);
+      background: var(--surface);
+      font-size: 11px; font-weight: 500; color: var(--text-secondary);
+      cursor: pointer; font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+      margin-top: 4px;
+    }
+    .summarize-btn:hover { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-text); }
+    .summarize-btn i { font-size: 13px; }
+    .summarize-btn.loading i { animation: spin 0.8s linear infinite; }
+
+    .ai-summary {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: var(--blue-bg);
+      border: 0.5px solid rgba(24, 95, 165, 0.2);
+      border-radius: var(--radius);
+      font-size: 12px; color: var(--text-primary);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      display: none;
+    }
+    .ai-summary.visible { display: block; }
+    .ai-summary-header {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 600; color: var(--blue-text);
+      margin-bottom: 6px;
+    }
+    .ai-summary-header i { font-size: 13px; }
+    .ai-summary.error { background: var(--red-bg); border-color: var(--red-border); }
+    .ai-summary.error .ai-summary-header { color: var(--red-text); }
+
+    /* ── Detection Models ── */
+    .models-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    @media (max-width: 700px) { .models-grid { grid-template-columns: 1fr; } }
+
+    .model-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-left: 3px solid var(--red-accent);
+      border-radius: 0 10px 10px 0;
+      padding: 0.85rem 1rem;
+      box-shadow: var(--shadow);
+      display: flex; flex-direction: column; gap: 5px;
+      transition: background 0.15s;
+    }
+    .model-card:hover { background: var(--surface-alt); }
+    .model-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .model-name { font-size: 13px; font-weight: 500; color: var(--text-primary); line-height: 1.35; }
+    .model-avail { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 99px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+    .model-avail.yes { background: #e6f5ec; color: #1a6e36; }
+    .model-avail.no  { background: var(--surface-alt); color: var(--text-muted); border: 0.5px solid var(--border-strong); }
+    .model-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+    .model-footer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .model-footer span { display: flex; align-items: center; gap: 3px; }
+    .model-footer i { font-size: 12px; }
+    .mitre-tag { font-size: 10px; font-weight: 500; background: var(--blue-bg); color: var(--blue-text); border-radius: 4px; padding: 1px 6px; font-family: 'SFMono-Regular', Consolas, monospace; }
+
+    /* ── States ── */
+    .state-box {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 12px;
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .state-box i { font-size: 32px; }
+    .state-box p { font-size: 14px; }
+    .state-box.error { border-color: var(--red-border); }
+    .state-box.error i, .state-box.error p { color: var(--red-text); }
+
+    /* ── Skeleton ── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface-alt) 25%, var(--border) 50%, var(--surface-alt) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+    .skeleton-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-left: 3px solid var(--border);
+      border-radius: 0 12px 12px 0;
+      padding: 1rem 1.25rem;
+      display: flex; gap: 14px; align-items: flex-start;
+      box-shadow: var(--shadow);
+    }
+    .sk-icon { width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0; }
+    .sk-body { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .sk-line { height: 12px; }
+
+    /* ── Footer ── */
+    .footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 0 0;
+      border-top: 0.5px solid var(--border);
+      margin-top: 1.5rem;
+      font-size: 12px; color: var(--text-muted);
+      flex-wrap: wrap; gap: 0.5rem;
+    }
+    .footer-left { display: flex; align-items: center; gap: 5px; }
+    .footer-left i { font-size: 13px; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo-mark"><i class="ti ti-shield-check"></i></div>
+      <div>
+        <div class="app-title">Vision One workbench</div>
+        <div class="app-sub">Alerts · last 7 days</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="date-chip" id="date-chip" style="display:none;">
+        <i class="ti ti-calendar"></i>
+        <span id="date-range-label"></span>
+      </div>
+      <button class="refresh-btn" id="refresh-btn" onclick="refreshAll()">
+        <i class="ti ti-refresh"></i>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <nav class="tabs">
+    <button class="tab-btn active" id="tab-alerts" onclick="switchTab('alerts')">
+      <i class="ti ti-bell"></i>
+      Alerts
+      <span class="tab-pill" id="tab-alert-count" style="display:none;"></span>
+    </button>
+    <button class="tab-btn" id="tab-models" onclick="switchTab('models')">
+      <i class="ti ti-cpu"></i>
+      Detection Models
+      <span class="tab-pill" style="background:var(--blue-bg);color:var(--blue-text);">Top 10 Critical</span>
+    </button>
+  </nav>
+
+  <!-- Alerts panel -->
+  <div class="tab-panel active" id="panel-alerts">
+    <div class="summary-row">
+      <div class="stat-card">
+        <div class="stat-label">Total alerts</div>
+        <div class="stat-value" id="stat-total">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">High severity</div>
+        <div class="stat-value red" id="stat-high">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Accounts affected</div>
+        <div class="stat-value amber" id="stat-accounts">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Common source IP</div>
+        <div class="stat-value blue" id="stat-ip">—</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span class="section-label">Open alerts</span>
+        <span class="count-badge" id="new-badge" style="display:none;"></span>
+      </div>
+      <div class="toolbar-right">
+        <select class="filter-select" id="account-filter" onchange="renderAlerts()">
+          <option value="">All accounts</option>
+        </select>
+        <select class="filter-select" id="sort-select" onchange="renderAlerts()">
+          <option value="severity">Sort: severity desc</option>
+          <option value="newest">Sort: newest first</option>
+          <option value="oldest">Sort: oldest first</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="alerts-container">
+      <div class="alerts-list">
+        <div class="skeleton-card"><div class="sk-icon skeleton"></div><div class="sk-body"><div class="sk-line skeleton" style="width:55%"></div><div class="sk-line skeleton" style="width:75%"></div><div class="sk-line skeleton" style="width:45%"></div></div></div>
+        <div class="skeleton-card"><div class="sk-icon skeleton"></div><div class="sk-body"><div class="sk-line skeleton" style="width:65%"></div><div class="sk-line skeleton" style="width:80%"></div><div class="sk-line skeleton" style="width:50%"></div></div></div>
+        <div class="skeleton-card"><div class="sk-icon skeleton"></div><div class="sk-body"><div class="sk-line skeleton" style="width:45%"></div><div class="sk-line skeleton" style="width:70%"></div><div class="sk-line skeleton" style="width:55%"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detection Models panel -->
+  <div class="tab-panel" id="panel-models">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span class="section-label">Critical detection models</span>
+        <span class="count-badge" style="background:var(--blue-bg);color:var(--blue-text);">Top 10</span>
+      </div>
+    </div>
+    <div class="models-grid" id="models-container">
+      <div class="skeleton-card" style="border-radius:0 10px 10px 0;"><div class="sk-body"><div class="sk-line skeleton" style="width:70%"></div><div class="sk-line skeleton" style="width:90%"></div></div></div>
+      <div class="skeleton-card" style="border-radius:0 10px 10px 0;"><div class="sk-body"><div class="sk-line skeleton" style="width:60%"></div><div class="sk-line skeleton" style="width:85%"></div></div></div>
+      <div class="skeleton-card" style="border-radius:0 10px 10px 0;"><div class="sk-body"><div class="sk-line skeleton" style="width:75%"></div><div class="sk-line skeleton" style="width:80%"></div></div></div>
+      <div class="skeleton-card" style="border-radius:0 10px 10px 0;"><div class="sk-body"><div class="sk-line skeleton" style="width:65%"></div><div class="sk-line skeleton" style="width:88%"></div></div></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-left">
+      <i class="ti ti-refresh"></i>
+      <span id="last-refresh">—</span>
+    </div>
+    <span>Powered by Trend Micro Vision One API</span>
+  </footer>
+
+</div>
+<script>
+  let allAlerts    = [];
+  let alertDataMap = {};  // safeId -> full alert object
+
+  // ── Tab switching ──
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('panel-' + name).classList.add('active');
+
+    // Only show date chip on alerts tab
+    document.getElementById('date-chip').style.display = name === 'alerts' ? '' : 'none';
+  }
+
+  // ── Utilities ──
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function shortDate(iso) {
+    return new Date(iso).toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', timeZone: 'UTC'
+    }) + ' UTC';
+  }
+
+  function topIP(alerts) {
+    const freq = {};
+    alerts.forEach(a => (a.indicators || []).forEach(ind => {
+      if (ind.type === 'ip') freq[ind.value] = (freq[ind.value] || 0) + 1;
+    }));
+    return Object.entries(freq).sort((a,b) => b[1]-a[1])[0]?.[0] || '—';
+  }
+
+  function uniqueAccounts(alerts) {
+    const s = new Set();
+    alerts.forEach(a => (a.impactScope?.entities || []).forEach(e => {
+      if (e.entityType === 'account') s.add(e.entityValue);
+    }));
+    return s;
+  }
+
+  // ── AI Summarization ──
+  async function summarizeAlert(safeId) {
+    const alert   = alertDataMap[safeId];
+    const btn     = document.getElementById('btn-' + safeId);
+    const summary = document.getElementById('summary-' + safeId);
+    if (!alert || !btn || !summary) return;
+
+    // If summary already loaded, toggle visibility
+    if (summary.classList.contains('visible') && !summary.classList.contains('error')) {
+      summary.classList.toggle('visible');
+      btn.querySelector('i').className = summary.classList.contains('visible')
+        ? 'ti ti-sparkles' : 'ti ti-sparkles';
+      return;
+    }
+
+    // Start loading
+    btn.classList.add('loading');
+    btn.disabled = true;
+    summary.className = 'ai-summary visible';
+    summary.querySelector('.ai-summary-text').textContent = 'Generating summary…';
+
+    try {
+      const res  = await fetch('/api/summarize', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(alert)
+      });
+      const json = await res.json();
+
+      if (!json.success) throw new Error(json.error || 'Summarization failed');
+
+      summary.className = 'ai-summary visible';
+      summary.querySelector('.ai-summary-header').innerHTML = '<i class="ti ti-sparkles"></i> Nova Lite Summary';
+      summary.querySelector('.ai-summary-text').textContent = json.summary;
+
+    } catch (err) {
+      summary.className = 'ai-summary visible error';
+      summary.querySelector('.ai-summary-header').innerHTML = '<i class="ti ti-alert-circle"></i> Summary failed';
+      summary.querySelector('.ai-summary-text').textContent = err.message;
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  }
+
+  // ── Alerts ──
+  function renderAlerts() {
+    const filterAccount = document.getElementById('account-filter').value;
+    const sortBy = document.getElementById('sort-select').value;
+
+    let items = allAlerts.filter(a => {
+      if (!filterAccount) return true;
+      return (a.impactScope?.entities || []).some(e => e.entityValue === filterAccount);
+    });
+
+    if (sortBy === 'newest') items.sort((a,b) => new Date(b.createdDateTime) - new Date(a.createdDateTime));
+    else if (sortBy === 'oldest') items.sort((a,b) => new Date(a.createdDateTime) - new Date(b.createdDateTime));
+    else items.sort((a,b) => b.score - a.score);
+
+    const container = document.getElementById('alerts-container');
+
+    if (items.length === 0) {
+      container.innerHTML = `<div class="state-box"><i class="ti ti-circle-check"></i><p>No open alerts in this time range.</p></div>`;
+      return;
+    }
+
+    container.innerHTML = '<div class="alerts-list">' + items.map(a => {
+      const account  = (a.impactScope?.entities || []).find(e => e.entityType === 'account')?.entityValue || '—';
+      const ip       = (a.indicators || []).find(i => i.type === 'ip')?.value || '—';
+      const resource = (a.indicators || []).find(i => i.field === 'targetResourceDisplayName')?.value || '—';
+      const sevClass = a.severity === 'high' ? 'badge-high' : 'badge-new';
+      const safeId   = escapeHtml(a.id).replace(/[^a-zA-Z0-9-]/g, '_');
+      return `
+      <div class="alert-card">
+        <div class="alert-card-main">
+          <div class="sev-icon"><i class="ti ti-alert-triangle"></i></div>
+          <div class="alert-body">
+            <div class="alert-top">
+              <span class="alert-id">${escapeHtml(a.id)}</span>
+              <span class="badge ${sevClass}">${escapeHtml(a.severity)} · ${a.score}</span>
+              <span class="badge badge-new">${escapeHtml(a.investigationStatus)}</span>
+              <span class="badge badge-open">${escapeHtml(a.status)}</span>
+            </div>
+            <div class="alert-model">${escapeHtml(a.model)}</div>
+            <div class="alert-meta">
+              <span><i class="ti ti-user"></i>${escapeHtml(account)}</span>
+              <span><i class="ti ti-network"></i>${escapeHtml(ip)}</span>
+              <span><i class="ti ti-clock"></i>${shortDate(a.createdDateTime)}</span>
+              <span><i class="ti ti-building"></i>${escapeHtml(resource)}</span>
+            </div>
+            <button class="summarize-btn" id="btn-${safeId}" onclick="summarizeAlert('${safeId}')">
+              <i class="ti ti-sparkles"></i> AI Summary
+            </button>
+          </div>
+          <div class="alert-right">
+            <a class="wb-link" href="${escapeHtml(a.workbenchLink)}" target="_blank" rel="noopener">
+              View in workbench <i class="ti ti-external-link"></i>
+            </a>
+            <span class="incident-id">${escapeHtml(a.incidentId || '')}</span>
+          </div>
+        </div>
+        <div class="ai-summary" id="summary-${safeId}">
+          <div class="ai-summary-header"><i class="ti ti-sparkles"></i> Nova Lite Summary</div>
+          <div class="ai-summary-text"></div>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+
+    // Store alert data keyed by safeId for later summarization
+    items.forEach(a => {
+      const safeId = escapeHtml(a.id).replace(/[^a-zA-Z0-9-]/g, '_');
+      alertDataMap[safeId] = a;
+    });
+  }
+
+  async function loadAlerts() {
+    try {
+      const res  = await fetch('/api/alerts');
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || 'API error');
+
+      const items = json.data?.items || [];
+      allAlerts = items;
+
+      // Date chip
+      const fmt = d => new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+      document.getElementById('date-range-label').textContent = `${fmt(json.startDateTime)} — ${fmt(json.endDateTime)}`;
+      document.getElementById('date-chip').style.display = '';
+
+      // Stats
+      const accounts = uniqueAccounts(items);
+      document.getElementById('stat-total').textContent    = items.length;
+      document.getElementById('stat-high').textContent     = items.filter(a => a.severity === 'high').length;
+      document.getElementById('stat-accounts').textContent = accounts.size;
+      document.getElementById('stat-ip').textContent       = topIP(items);
+
+      // Tab + toolbar badge
+      const newCount = items.filter(a => a.investigationStatus === 'New').length;
+      const tabPill  = document.getElementById('tab-alert-count');
+      const toolBadge = document.getElementById('new-badge');
+      if (newCount > 0) {
+        tabPill.textContent  = newCount;
+        tabPill.style.display = '';
+        toolBadge.textContent = `${newCount} new`;
+        toolBadge.style.display = '';
+      } else {
+        tabPill.style.display  = 'none';
+        toolBadge.style.display = 'none';
+      }
+
+      // Account filter
+      const filterSel = document.getElementById('account-filter');
+      const currentVal = filterSel.value;
+      filterSel.innerHTML = '<option value="">All accounts</option>';
+      [...accounts].sort().forEach(acc => {
+        const opt = document.createElement('option');
+        opt.value = acc; opt.textContent = acc;
+        if (acc === currentVal) opt.selected = true;
+        filterSel.appendChild(opt);
+      });
+
+      document.getElementById('last-refresh').textContent = `Last refreshed: ${json.refreshedAt}`;
+      renderAlerts();
+
+    } catch (err) {
+      document.getElementById('alerts-container').innerHTML = `
+        <div class="state-box error">
+          <i class="ti ti-alert-circle"></i>
+          <p>Could not load alerts: ${escapeHtml(err.message)}</p>
+        </div>`;
+    }
+  }
+
+  // ── Detection Models ──
+  async function loadModels() {
+    try {
+      const res  = await fetch('/api/models');
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || 'API error');
+
+      const container = document.getElementById('models-container');
+      if (!json.models || json.models.length === 0) {
+        container.innerHTML = `<div class="state-box" style="grid-column:1/-1"><i class="ti ti-circle-check"></i><p>No critical detection models found.</p></div>`;
+        return;
+      }
+
+      container.innerHTML = json.models.map(m => {
+        const mitreIds = m.mitre ? m.mitre.split(',').slice(0, 3) : [];
+        const updated  = new Date(m.lastUpdatedDateTime).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+        return `
+        <div class="model-card">
+          <div class="model-card-top">
+            <div class="model-name">${escapeHtml(m.name)}</div>
+            <span class="model-avail ${m.available ? 'yes' : 'no'}">${m.available ? 'Available' : 'Unavailable'}</span>
+          </div>
+          <div class="model-desc">${escapeHtml(m.description)}</div>
+          <div class="model-footer">
+            <span><i class="ti ti-clock"></i>${updated}</span>
+            ${mitreIds.map(t => `<span class="mitre-tag">${escapeHtml(t.replace('mitre.','').toUpperCase())}</span>`).join('')}
+          </div>
+        </div>`;
+      }).join('');
+
+    } catch (err) {
+      document.getElementById('models-container').innerHTML = `
+        <div class="state-box error" style="grid-column:1/-1">
+          <i class="ti ti-alert-circle"></i>
+          <p>Could not load detection models: ${escapeHtml(err.message)}</p>
+        </div>`;
+    }
+  }
+
+  // ── Refresh ──
+  async function refreshAll() {
+    const btn = document.getElementById('refresh-btn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+    await Promise.all([loadAlerts(), loadModels()]);
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+
+  // Initial load
+  loadAlerts();
+  loadModels();
+</script>
+</body>
+</html>
